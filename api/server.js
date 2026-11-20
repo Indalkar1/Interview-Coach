@@ -1,12 +1,12 @@
+import "dotenv/config";
+import dns from "node:dns";
+dns.setServers(["8.8.8.8", "1.1.1.1"]);
+import express from "express";
 import authRoutes from "./routes/auth.js";
 import sessionRoutes from "./routes/sessions.js";
-import "dotenv/config";
-import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 // your computer couldn’t do the DNS lookup for the mongodb+srv:// address  so use Google DNS in the Node app
-import dns from "node:dns";
-dns.setServers(["8.8.8.8", "1.1.1.1"]);
 
 const app = express();
 app.use(cors());
