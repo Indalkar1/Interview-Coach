@@ -1,20 +1,44 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React from "react";
+import { ActivityIndicator } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { AuthProvider, useAuth } from "./src/AuthContext";
+import LoginScreen from "./src/screens/LoginScreen";
+import HomeScreen from "./src/screens/HomeScreen";
+import InterviewScreen from "./src/screens/InterviewScreen";
+import FeedbackScreen from "./src/screens/FeedbackScreen";
+import SummaryScreen from "./src/screens/SummaryScreen";
+import ProfileScreen from "./src/screens/ProfileScreen";
 
-export default function App() {
+const Stack = createNativeStackNavigator();
+
+function Routes() {
+  const { token, booting } = useAuth();
+  if (booting) return <ActivityIndicator style={{ flex: 1 }} size="large" />;
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <Stack.Navigator>
+      {token ? (
+        <>
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Interview" component={InterviewScreen} options={{ headerBackVisible: false }} />
+          <Stack.Screen name="Feedback" component={FeedbackScreen} options={{ headerBackVisible: false }} />
+          <Stack.Screen name="Summary" component={SummaryScreen} options={{ headerBackVisible: false }} />
+          <Stack.Screen name="Profile" component={ProfileScreen} />
+        </>
+      ) : (
+        <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+      )}
+    </Stack.Navigator>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default function App() {
+  return (
+    <AuthProvider>
+      <NavigationContainer>
+        <Routes />
+      </NavigationContainer>
+    </AuthProvider>
+  );
+}

@@ -1,4 +1,5 @@
 import "dotenv/config";
+// your computer couldn’t do the DNS lookup for the mongodb+srv:// address  so use Google DNS in the Node app
 import dns from "node:dns";
 dns.setServers(["8.8.8.8", "1.1.1.1"]);
 import express from "express";
@@ -6,13 +7,15 @@ import authRoutes from "./routes/auth.js";
 import sessionRoutes from "./routes/sessions.js";
 import cors from "cors";
 import mongoose from "mongoose";
-// your computer couldn’t do the DNS lookup for the mongodb+srv:// address  so use Google DNS in the Node app
+import resumeRoutes from "./routes/resume.js";
+
 
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 app.use("/auth", authRoutes);
 app.use("/sessions", sessionRoutes);
+app.use("/resume", resumeRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err);
