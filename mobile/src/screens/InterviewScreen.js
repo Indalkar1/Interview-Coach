@@ -34,6 +34,12 @@ export default function InterviewScreen({ route, navigation }) {
     return () => Speech.stop();
   }, [q.question]);
 
+  useEffect(() => {
+    if (recState.isRecording && recState.durationMillis >= 180000) {
+      stopRecording();
+    }
+  }, [recState.durationMillis]);
+  
   async function startRecording() {
     try {
       Speech.stop();

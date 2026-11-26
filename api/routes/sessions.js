@@ -8,6 +8,7 @@ import { requireAuth } from "../middleware/auth.js";
 import { generateQuestion, evaluateAnswer } from "../services/interview.js";
 import multer from "multer";
 import OpenAI, { toFile } from "openai";
+import { aiBurstLimiter, aiDailyLimiter } from "../middleware/limits.js";
 
 const router = Router();
 router.use(requireAuth);
@@ -46,25 +47,31 @@ async function loadSession(req, res) {
 }
 
 // Speech-to-text: audio in, text out
-router.post("/transcribe", upload.single("audio"), async (req, res) => {
-  if (!req.file) return res.status(400).json({ error: "No audio uploaded" });
+router.post(
+  "/transcribe",
+  aiBurstLimiter,
+  aiDailyLimiter,
+  upload.single("audio"),
+  async (req, res) => {
+    if (!req.file) return res.status(400).json({ error: "No audio uploaded" });
 
-  const file = await toFile(req.file.buffer, "answer.m4a", {
-    type: "audio/m4a",
-  });
-  const result = await openai.audio.transcriptions.create({
-    file,
-    model: "whisper-1",
-    language: "en",
-    prompt:
-      "Technical interview answer about software development: React, Redux, Node.js, API, MongoDB, useMemo.",
-  });
+    const file = await toFile(req.file.buffer, "answer.m4a", {
+      type: "audio/m4a",
+    });
+    const result = await openai.audio.transcriptions.create({
+      file,
+      model: "whisper-1",
+      language: "en",
+      prompt:
+        "Technical interview answer about software development: React, Redux, Node.js, API, MongoDB, useMemo.",
+    });
 
-  res.json({ text: result.text });
-});
+    res.json({ text: result.text });
+  },
+);
 
 // 1. Start a session and get the first question
-router.post("/", async (req, res) => {
+router.post("/", aiBurstLimiter, aiDailyLimiter, async (req, res) => {
   const parsed = startSchema.safeParse(req.body);
   if (!parsed.success)
     return res.status(400).json({ error: parsed.error.issues[0].message });
@@ -100,7 +107,7 @@ router.post("/", async (req, res) => {
 });
 
 // 2. Submit an answer: get feedback and the next question
-router.post("/:id/answer", async (req, res) => {
+router.post("/:id/answer", aiBurstLimiter, aiDailyLimiter, async (req, res) => {
   const parsed = answerSchema.safeParse(req.body);
   if (!parsed.success)
     return res
@@ -135,8 +142,10 @@ router.post("/:id/answer", async (req, res) => {
   const done = session.turns.length >= MAX_QUESTIONS;
   let next = null;
 
-  const weakTopics = session.focusWeak ? (await getWeakTopics(req.userId, 3)).map((t) => t.topic) : [];
-  
+  const weakTopics = session.focusWeak
+    ? (await getWeakTopics(req.userId, 3)).map((t) => t.topic)
+    : [];
+
   if (!done) {
     const user = session.useResume
       ? await User.findById(req.userId).select("resume")

@@ -4,6 +4,7 @@ import { z } from "zod";
 import User from "../models/User.js";
 import { requireAuth } from "../middleware/auth.js";
 import { askJSON } from "../services/llm.js";
+import { aiBurstLimiter, resumeLimiter } from "../middleware/limits.js";
 
 const router = Router();
 router.use(requireAuth);
@@ -38,7 +39,7 @@ async function extractPdfText(buffer) {
   return (await pdf(buffer)).text;
 }
 
-router.post("/", (req, res, next) => {
+router.post("/", resumeLimiter, aiBurstLimiter, (req, res, next) => {
   upload.single("resume")(req, res, (err) => {
     if (err) return res.status(400).json({ error: err.message });
     next();
