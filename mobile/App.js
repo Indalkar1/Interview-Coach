@@ -9,6 +9,7 @@ import InterviewScreen from "./src/screens/InterviewScreen";
 import FeedbackScreen from "./src/screens/FeedbackScreen";
 import SummaryScreen from "./src/screens/SummaryScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
+import ProgressScreen from "./src/screens/ProgressScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -25,6 +26,7 @@ function Routes() {
           <Stack.Screen name="Feedback" component={FeedbackScreen} options={{ headerBackVisible: false }} />
           <Stack.Screen name="Summary" component={SummaryScreen} options={{ headerBackVisible: false }} />
           <Stack.Screen name="Profile" component={ProfileScreen} />
+          <Stack.Screen name="Progress" component={ProgressScreen} />
         </>
       ) : (
         <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />

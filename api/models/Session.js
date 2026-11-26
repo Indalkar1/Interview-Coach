@@ -18,6 +18,7 @@ const SessionSchema = new mongoose.Schema(
     role: String,
     level: String,
     useResume: { type: Boolean, default: false },
+    focusWeak: { type: Boolean, default: false },
     turns: [TurnSchema],
     overallScore: Number,
     status: { type: String, default: "active" },

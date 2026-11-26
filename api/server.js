@@ -8,7 +8,7 @@ import sessionRoutes from "./routes/sessions.js";
 import cors from "cors";
 import mongoose from "mongoose";
 import resumeRoutes from "./routes/resume.js";
-
+import progressRoutes from "./routes/progress.js";
 
 const app = express();
 app.use(cors());
@@ -16,6 +16,7 @@ app.use(express.json({ limit: "1mb" }));
 app.use("/auth", authRoutes);
 app.use("/sessions", sessionRoutes);
 app.use("/resume", resumeRoutes);
+app.use("/progress", progressRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err);

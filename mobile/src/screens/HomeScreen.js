@@ -87,6 +87,9 @@ export default function HomeScreen({ navigation }) {
       <Text style={s.link} onPress={() => navigation.navigate("Profile")}>
         My resume
       </Text>
+      <Text style={s.link} onPress={() => navigation.navigate("Progress")}>
+        My progress
+      </Text>
       <Text style={s.link} onPress={logout}>
         Log out
       </Text>

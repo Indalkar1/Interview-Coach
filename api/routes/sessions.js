@@ -1,6 +1,7 @@
 import { Router } from "express";
 import mongoose from "mongoose";
 import { z } from "zod";
+import { getWeakTopics } from "../services/progress.js";
 import Session from "../models/Session.js";
 import User from "../models/User.js";
 import { requireAuth } from "../middleware/auth.js";
@@ -23,6 +24,7 @@ const startSchema = z.object({
   role: z.string().min(2).max(80),
   level: z.enum(["junior", "mid", "senior"]),
   useResume: z.boolean().optional().default(false),
+  focusWeak: z.boolean().optional().default(false),
 });
 const answerSchema = z.object({ answer: z.string().max(4000) });
 
@@ -66,7 +68,7 @@ router.post("/", async (req, res) => {
   const parsed = startSchema.safeParse(req.body);
   if (!parsed.success)
     return res.status(400).json({ error: parsed.error.issues[0].message });
-  const { role, level, useResume } = parsed.data;
+  const { role, level, useResume, focusWeak } = parsed.data;
 
   let resumeSummary = null;
   if (useResume) {
@@ -74,7 +76,10 @@ router.post("/", async (req, res) => {
     resumeSummary = user?.resume?.summary || null;
   }
 
-  const q = await generateQuestion({ role, level, resumeSummary });
+  const weakTopics = focusWeak
+    ? (await getWeakTopics(req.userId, 3)).map((t) => t.topic)
+    : [];
+  const q = await generateQuestion({ role, level, resumeSummary, weakTopics });
 
   const session = await Session.create({
     userId: req.userId,
@@ -130,6 +135,8 @@ router.post("/:id/answer", async (req, res) => {
   const done = session.turns.length >= MAX_QUESTIONS;
   let next = null;
 
+  const weakTopics = session.focusWeak ? (await getWeakTopics(req.userId, 3)).map((t) => t.topic) : [];
+  
   if (!done) {
     const user = session.useResume
       ? await User.findById(req.userId).select("resume")
